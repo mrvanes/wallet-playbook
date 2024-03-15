@@ -1,0 +1,41 @@
+---
+wallet_ecosystem_dir: "{{ base_dir}}/wallet-ecosystem"
+wallet_ecosystem_repo_url: "https://github.com/wwWallet/wallet-ecosystem.git"
+wallet_ecosystem_version: "master"
+
+wallet_frontend: "wallet.{{ base_domain }}"
+
+allow_password: true
+
+db_config:
+  host: wallet-db
+  port: 3307
+  user: root
+  password: root
+
+backend_config:
+  url: "http://{{ wallet_frontend }}"
+  port: 8002
+  secret: secret
+  ssl_flag: false
+  client_url: "http://{{ wallet_frontend }}/cb"
+  origin: "http://{{ wallet_frontend }}"
+  notifications: false
+
+enterprise_config:
+  vid_issuer:
+    host: wallet-vid
+    port: 8003
+    secret: secret
+  acme_verifier:
+    host: wallet-acme
+    port: 8005
+    secret: secret
+  diploma_issuer:
+    host: wallet-diploma
+    port: 8000
+    secret: secret
+  ehic_issuer:
+    host: wallet-ehic
+    port: 8004
+    secret: secret

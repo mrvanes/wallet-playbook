@@ -1,0 +1,13 @@
+---
+- name: Install nginx
+  apt:
+    name: "nginx"
+    state: "present"
+
+- name: Create Ecosystem sites
+  ansible.builtin.template:
+    dest: "/etc/nginx/sites-enabled/{{item}}"
+    src: "{{ item }}.j2"
+  with_items:
+    - wallet
+  notify: restart nginx

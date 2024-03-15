@@ -1,0 +1,14 @@
+---
+- hosts: all
+  tasks:
+    - name: Read vars from secrets file
+      include_vars: "{{ secrets_file }}"
+
+- hosts: wallet
+  roles:
+    - role: docker
+      tags: docker
+    - role: ecosystem
+      tags: ecosystem
+    - role: nginx
+      tags: nginx

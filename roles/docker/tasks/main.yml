@@ -1,0 +1,50 @@
+---
+- name: Install required packages
+  ansible.builtin.apt:
+    state: "latest"
+    name:
+      - gpg
+      - gpg-agent
+    install_recommends: false
+
+- name: Add Docker GPG key.
+  ansible.builtin.apt_key:
+    url: "https://download.docker.com/linux/debian/gpg"
+    state: "present"
+
+- name: Add Docker repository.
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
+    state: "present"
+
+- name: Create docker config directory
+  ansible.builtin.file:
+    path: "/etc/docker"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Install docker config
+  ansible.builtin.copy:
+    content: |
+      {
+        "log-driver": "journald",
+        "log-opts": {
+        }
+      }
+    dest: "/etc/docker/daemon.json"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Install docker
+  ansible.builtin.apt:
+    name: "docker-ce"
+    state: "present"
+  notify:
+    - "start docker"
+
+- name: Create the internal network
+  community.docker.docker_network:
+    name: "{{internal_network}}"

@@ -1,0 +1,31 @@
+export = {
+        url: "{{ backend_config.url }}",
+        port: "{{ backend_config.port }}",
+        appSecret: "{{ backend_config.secret }}",
+        ssl: "{{ backend_config.ssl_flag }}",
+        db: {
+                host: "{{ db_config.host }}",
+                port: "{{ db_config.port }}",
+                username: "{{ db_config.user }}",
+                password: "{{ db_config.password }}",
+                dbname: "wallet"
+        },
+        walletClientUrl: "{{ backend_config.client_url }}",
+        webauthn: {
+                attestation: "direct",
+                origin: "{{ backend_config.client_url }}",
+                rp: {
+                        id: "{{ wallet_frontend }}",
+                        name: "wwWallet demo",
+                },
+        },
+        alg: "EdDSA",
+        servicesConfiguration: {
+                issuanceService: "OpenidForCredentialIssuanceService", // OpenidForCredentialIssuanceService or OpenidForCredentialIssuanceVCEDUService
+                didKeyService: "EBSI", // W3C or EBSI
+        },
+        notifications: {
+                enabled: "{{ backend_config.notifications }}",
+                serviceAccount: "firebaseConfig.json"
+        }
+}

@@ -1,0 +1,13 @@
+export = {
+        url: "http://{{ enterprise_config.vid_issuer.host }}.{{ base_domain }}",
+        port: "{{ enterprise_config.vid_issuer.port }}",
+        appSecret: "{{ enterprise_config.vid_issuer.secret }}",
+        db: {
+                host: "wallet-db",
+                port: "3307",
+                username: "root",
+                password: "root",
+                dbname: "vidissuer"
+        },
+        wwwalletURL: "http://{{ wallet_frontend }}/cb"
+}

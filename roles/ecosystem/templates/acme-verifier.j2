@@ -1,0 +1,13 @@
+export = {
+        url: "http://{{ enterprise_config.acme_verifier.host }}.{{ base_domain }}",
+        port: "{{ enterprise_config.acme_verifier.port }}",
+        appSecret: "{{ enterprise_config.acme_verifier.secret }}",
+        db: {
+                host: "wallet-db",
+                port: "3307",
+                username: "root",
+                password: "root",
+                dbname: "verifier"
+        },
+        wwwalletURL: "http://{{ wallet_frontend }}/cb"
+}

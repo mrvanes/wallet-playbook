@@ -1,0 +1,138 @@
+---
+- name: Install required packages
+  ansible.builtin.apt:
+    state: "latest"
+    name:
+      - git
+      - nodejs
+      - python3-pymysql
+    install_recommends: false
+
+- name: Write github SSH key
+  ansible.builtin.copy:
+    content: "{{ github_key }}"
+    dest: "{{ wallet_ecosystem_dir }}/github_key"
+    owner: "root"
+    group: "root"
+    mode: 0600
+
+- name: Fetch Wallet ecosystem from {{ wallet_ecosystem_repo_url }}, version {{ wallet_ecosystem_version }}
+  ansible.builtin.git:
+    repo: "{{ wallet_ecosystem_repo_url }}"
+    dest: "{{ wallet_ecosystem_dir }}"
+    version: "{{ wallet_ecosystem_version }}"
+    accept_hostkey: "yes"
+    force: "yes"
+    key_file: "{{ wallet_ecosystem_dir }}/github_key"
+
+- name: Write .github-token
+  ansible.builtin.copy:
+    content: "{{ github_token }}"
+    dest: "{{ wallet_ecosystem_dir }}/.github-token"
+    owner: "root"
+    group: "root"
+    mode: 0644
+
+- name: Touch files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    mode: '0666'
+    state: touch
+  with_items:
+    - "{{ wallet_ecosystem_dir }}/wallet-backend-server/yarn-error.log"
+    - "{{ wallet_ecosystem_dir }}/wallet-enterprise/yarn-error.log"
+    - "{{ wallet_ecosystem_dir }}/wallet-backend-server/.npmrc"
+    - "{{ wallet_ecosystem_dir }}/wallet-enterprise/.npmrc"
+
+- name: Create Frontend .env file
+  ansible.builtin.template:
+    dest: "{{ wallet_ecosystem_dir }}/wallet-frontend/.env"
+    src: frontend.env.j2
+
+- name: Create Enterprise Configurations
+  ansible.builtin.template:
+    dest: "{{ wallet_ecosystem_dir }}/wallet-enterprise-configurations/{{ item }}/config/config.development.ts"
+    src: "{{ item }}.j2"
+  with_items:
+    - vid-issuer
+    - acme-verifier
+    - diploma-issuer
+    - ehic-issuer
+
+- name: Create Backend server config
+  ansible.builtin.template:
+    dest: "{{ wallet_ecosystem_dir }}/wallet-backend-server/config/config.development.ts"
+    src: "backend.j2"
+
+- name: Create Backend server VerifierRegistryService.ts
+  ansible.builtin.template:
+    dest: "{{ wallet_ecosystem_dir }}/wallet-backend-server/src/services/VerifierRegistryService.ts"
+    src: "VerifierRegistryService.ts.j2"
+
+- name: Copy docker-compose.template.yml
+  ansible.builtin.copy:
+    dest: "{{ wallet_ecosystem_dir }}/docker-compose.yml"
+    src: "{{ wallet_ecosystem_dir }}/docker-compose.template.yml"
+    remote_src: true
+
+- name: Start wallet-db
+  ansible.builtin.command:
+    cmd: "docker compose up wallet-db -d"
+    chdir: "{{ wallet_ecosystem_dir }}"
+
+- name: Wait for 5 seconds
+  ansible.builtin.wait_for:
+    host: localhost
+    port: "{{ db_config.port }}"
+
+- name: "Initialialize legal_person database (I)"
+  community.mysql.mysql_query:
+    login_host: "localhost"
+    login_db: "wallet"
+    login_port: "{{ db_config.port }}"
+    login_user: "{{ db_config.user }}"
+    login_password: "{{ db_config.user }}"
+    query:
+      - "DROP TABLE IF EXISTS `legal_person`"
+      - >-
+        CREATE TABLE `legal_person` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `friendlyName` varchar(255) NOT NULL,
+          `url` varchar(255) NOT NULL,
+          `did` varchar(255) NOT NULL,
+          `client_id` varchar(255) DEFAULT NULL,
+          `client_secret` varchar(255) DEFAULT NULL,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+- name: "Initialialize legal_person database (II)"
+  community.mysql.mysql_query:
+    login_host: "localhost"
+    login_db: "wallet"
+    login_port: "{{ db_config.port }}"
+    login_user: "{{ db_config.user }}"
+    login_password: "{{ db_config.user }}"
+    query: >-
+      INSERT INTO `legal_person` (`friendlyName`, `url`, `did`, `client_id`, `client_secret`)
+      VALUES ('{{ item.friendlyName }}', '{{ item.url }}', '{{ item.did }}', '{{ item.client_id }}', '{{ item.client_secret }}')
+  with_items:
+    - friendlyName: "National VID Issuer"
+      url: "http://{{ enterprise_config.vid_issuer.host }}.{{ base_domain }}"
+      did: "did:key:{{ enterprise_config.vid_issuer.host }}"
+      client_id: "did:key:{{ enterprise_config.vid_issuer.host }}"
+      client_secret: secret
+    - friendlyName: "University of Athens"
+      url: "http://{{ enterprise_config.diploma_issuer.host }}.{{ base_domain }}"
+      did: "did:key:{{ enterprise_config.diploma_issuer.host }}"
+      client_id: "did:key:{{ enterprise_config.diploma_issuer.host }}"
+      client_secret: secret
+    - friendlyName: "EHIC Issuer"
+      url: "http://{{ enterprise_config.ehic_issuer.host }}.{{ base_domain }}"
+      did: "did:key:{{ enterprise_config.ehic_issuer.host }}"
+      client_id: "did:key:{{ enterprise_config.ehic_issuer.host }}"
+      client_secret: secret
+
+- name: Stop wallet-db
+  ansible.builtin.command:
+    cmd: "docker compose stop wallet-db"
+    chdir: "{{ wallet_ecosystem_dir }}"
