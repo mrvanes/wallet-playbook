@@ -4,10 +4,21 @@
     name: "nginx"
     state: "present"
 
+- name: Replace nginx.conf
+  ansible.builtin.copy:
+    dest: "/etc/nginx/nginx.conf"
+    src: "nginx.conf"
+  notify: restart nginx
+
 - name: Create Ecosystem sites
   ansible.builtin.template:
     dest: "/etc/nginx/sites-enabled/{{item}}"
     src: "{{ item }}.j2"
+    force: no
   with_items:
     - wallet
+    - vid-issuer
+    - diploma-issuer
+    - ehic-issuer
+    - acme-verifier
   notify: restart nginx

@@ -1,0 +1,64 @@
+---
+# Secrets
+secrets_file: "environments/w100/secrets.yml"
+
+# Docker
+internal_network: wallet
+
+# Deployment
+base_domain: maes1.incubator.geant.org
+base_dir: /opt
+wallet_ecosystem_dir: "{{ base_dir}}/wallet-ecosystem"
+
+allow_password: false
+
+enable_letsencrypt: true
+wallet_proto: "http{{ 's' if enable_letsencrypt }}"
+
+wallet_frontend:
+  host: wallet
+  url: "{{ wallet_proto }}://wallet.{{ base_domain }}"
+  port: 3000
+
+wallet_backend:
+  port: 8002
+
+enterprise_config:
+  vid_issuer:
+    host: wallet-vid-issuer
+    url: "{{ wallet_proto }}://wallet-vid-issuer.{{ base_domain }}"
+    port: 8003
+    secret: secret
+  acme_verifier:
+    host: wallet-acme-verifier
+    url: "{{ wallet_proto }}://wallet-acme-verifier.{{ base_domain }}"
+    port: 8005
+    secret: secret
+  diploma_issuer:
+    host: wallet-diploma-issuer
+    url: "{{ wallet_proto }}://wallet-diploma-issuer.{{ base_domain }}"
+    port: 8000
+    secret: secret
+  ehic_issuer:
+    host: wallet-ehic-issuer
+    url: "{{ wallet_proto }}://wallet-ehic-issuer.{{ base_domain }}"
+    port: 8004
+    secret: secret
+
+legal_persons:
+  - friendlyName: "National VID Issuer"
+    url: "{{ enterprise_config.vid_issuer.url }}"
+    did: "did:key:{{ enterprise_config.vid_issuer.host }}"
+    client_id: "did:key:{{ enterprise_config.vid_issuer.host }}"
+    client_secret: secret
+  - friendlyName: "University of Athens"
+    url: "{{ enterprise_config.diploma_issuer.url }}/uoa"
+    did: "did:key:{{ enterprise_config.diploma_issuer.host }}"
+    client_id: "did:key:{{ enterprise_config.diploma_issuer.host }}"
+    client_secret: secret
+  - friendlyName: "EHIC Issuer"
+    url: "{{ enterprise_config.ehic_issuer.url }}"
+    did: "did:key:{{ enterprise_config.ehic_issuer.host }}"
+    client_id: "did:key:{{ enterprise_config.ehic_issuer.host }}"
+    client_secret: secret
+

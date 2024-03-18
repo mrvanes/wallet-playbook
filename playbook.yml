@@ -12,3 +12,6 @@
       tags: ecosystem
     - role: nginx
       tags: nginx
+    - role: letsencrypt
+      tags: letsencrypt
+      when: enable_letsencrypt

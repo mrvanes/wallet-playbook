@@ -1,5 +1,5 @@
 export = {
-        url: "http://{{ enterprise_config.ehic_issuer.host }}.{{ base_domain }}",
+        url: "{{ enterprise_config.ehic_issuer.url }}",
         port: "{{ enterprise_config.ehic_issuer.port }}",
         appSecret: "{{ enterprise_config.ehic_issuer.secret }}",
         db: {
@@ -9,5 +9,5 @@ export = {
                 password: "root",
                 dbname: "ehicissuer"
         },
-        wwwalletURL: "http://{{ wallet_frontend }}/cb"
+        wwwalletURL: "{{ wallet_frontend.url }}/cb"
 }

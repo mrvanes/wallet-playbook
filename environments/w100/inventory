@@ -1,0 +1,3 @@
+# Combined wallet environment
+[wallet]
+w100.wallets.lab.surf.nl ansible_user=surf

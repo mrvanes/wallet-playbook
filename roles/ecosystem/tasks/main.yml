@@ -8,10 +8,16 @@
       - python3-pymysql
     install_recommends: false
 
+# - name: Create ecosystem directory
+#   file:
+#     path: "{{ wallet_ecosystem_dir }}"
+#     state: "directory"
+#     mode: "0755"
+
 - name: Write github SSH key
   ansible.builtin.copy:
-    content: "{{ github_key }}"
-    dest: "{{ wallet_ecosystem_dir }}/github_key"
+    content: "{{ github_ssh_key }}"
+    dest: "~/github_ssh_key"
     owner: "root"
     group: "root"
     mode: 0600
@@ -23,7 +29,7 @@
     version: "{{ wallet_ecosystem_version }}"
     accept_hostkey: "yes"
     force: "yes"
-    key_file: "{{ wallet_ecosystem_dir }}/github_key"
+    key_file: "~/github_ssh_key"
 
 - name: Write .github-token
   ansible.builtin.copy:
@@ -80,10 +86,11 @@
     cmd: "docker compose up wallet-db -d"
     chdir: "{{ wallet_ecosystem_dir }}"
 
-- name: Wait for 5 seconds
+- name: Wait for DB port
   ansible.builtin.wait_for:
     host: localhost
     port: "{{ db_config.port }}"
+    delay: 5
 
 - name: "Initialialize legal_person database (I)"
   community.mysql.mysql_query:
@@ -115,24 +122,21 @@
     query: >-
       INSERT INTO `legal_person` (`friendlyName`, `url`, `did`, `client_id`, `client_secret`)
       VALUES ('{{ item.friendlyName }}', '{{ item.url }}', '{{ item.did }}', '{{ item.client_id }}', '{{ item.client_secret }}')
-  with_items:
-    - friendlyName: "National VID Issuer"
-      url: "http://{{ enterprise_config.vid_issuer.host }}.{{ base_domain }}"
-      did: "did:key:{{ enterprise_config.vid_issuer.host }}"
-      client_id: "did:key:{{ enterprise_config.vid_issuer.host }}"
-      client_secret: secret
-    - friendlyName: "University of Athens"
-      url: "http://{{ enterprise_config.diploma_issuer.host }}.{{ base_domain }}"
-      did: "did:key:{{ enterprise_config.diploma_issuer.host }}"
-      client_id: "did:key:{{ enterprise_config.diploma_issuer.host }}"
-      client_secret: secret
-    - friendlyName: "EHIC Issuer"
-      url: "http://{{ enterprise_config.ehic_issuer.host }}.{{ base_domain }}"
-      did: "did:key:{{ enterprise_config.ehic_issuer.host }}"
-      client_id: "did:key:{{ enterprise_config.ehic_issuer.host }}"
-      client_secret: secret
+  with_items: "{{ legal_persons }}"
 
 - name: Stop wallet-db
   ansible.builtin.command:
     cmd: "docker compose stop wallet-db"
     chdir: "{{ wallet_ecosystem_dir }}"
+
+- name: Create Ecosystem service
+  ansible.builtin.template:
+    dest: "/etc/systemd/system/ecosystem.service"
+    src: "ecosystem.service.j2"
+
+- name: Restart ecosystem
+  systemd:
+    name: "ecosystem"
+    state: "restarted"
+    enabled: true
+    daemon_reload: true

@@ -1,0 +1,26 @@
+---
+- name: Install required packages
+  ansible.builtin.apt:
+    state: "latest"
+    name:
+      - certbot
+      - python3-certbot-nginx
+    install_recommends: false
+
+- name: Set Fact
+  vars:
+    hosts: "-d {{ wallet_frontend.host }}.{{ base_domain }}"
+    template: " -d {}.{}"
+  set_fact:
+    hosts: "{{ hosts  + template.format(item.value.host, base_domain) }}"
+  with_dict: "{{ enterprise_config }}"
+
+- name: Debug hosts
+  ansible.builtin.debug:
+    msg: "certbot --expand --nginx {{ hosts }}"
+
+- name: Enable letsencrypt
+  ansible.builtin.command:
+    cmd: "certbot --expand --nginx {{ hosts }}"
+  args:
+    creates: '/etc/letsencrypt/live/{{ wallet_frontend.host }}.{{ base_domain }}'

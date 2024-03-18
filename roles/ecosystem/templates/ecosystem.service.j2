@@ -1,0 +1,12 @@
+[Unit]
+Description=Wallet Ecosystem
+After=syslog.target network.target
+
+[Service]
+Type=exec
+WorkingDirectory={{ wallet_ecosystem_dir }}
+ExecStart=/usr/bin/docker compose up
+SyslogIdentifier=wallet-ecosystem
+
+[Install]
+WantedBy=multi-user.target

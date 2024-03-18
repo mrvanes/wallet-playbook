@@ -13,9 +13,9 @@ export = {
         walletClientUrl: "{{ backend_config.client_url }}",
         webauthn: {
                 attestation: "direct",
-                origin: "{{ backend_config.client_url }}",
+                origin: "{{ wallet_frontend.url }}",
                 rp: {
-                        id: "{{ wallet_frontend }}",
+                        id: "{{ wallet_frontend.host }}.{{ base_domain }}",
                         name: "wwWallet demo",
                 },
         },
@@ -25,7 +25,7 @@ export = {
                 didKeyService: "EBSI", // W3C or EBSI
         },
         notifications: {
-                enabled: "{{ backend_config.notifications }}",
+                enabled: {{ backend_config.notifications }},
                 serviceAccount: "firebaseConfig.json"
         }
 }
