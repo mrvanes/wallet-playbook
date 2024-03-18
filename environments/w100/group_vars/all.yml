@@ -10,7 +10,7 @@ base_domain: maes1.incubator.geant.org
 base_dir: /opt
 wallet_ecosystem_dir: "{{ base_dir}}/wallet-ecosystem"
 
-allow_password: false
+allow_password: "false"
 
 enable_letsencrypt: true
 wallet_proto: "http{{ 's' if enable_letsencrypt }}"

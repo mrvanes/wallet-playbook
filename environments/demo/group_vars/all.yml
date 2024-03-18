@@ -10,7 +10,7 @@ base_domain: local
 base_dir: /opt
 wallet_ecosystem_dir: "{{ base_dir}}/wallet-ecosystem"
 
-allow_password: true
+allow_password: "true"
 
 enable_letsencrypt: false
 wallet_proto: "http{{ 's' if enable_letsencrypt }}"
