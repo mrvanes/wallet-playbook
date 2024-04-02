@@ -39,6 +39,14 @@
     group: "root"
     mode: 0644
 
+- name: Write .npmrc from template
+  ansible.builtin.shell:
+    cmd: "cat .npmrc.template | envsubst > .npmrc"
+    chdir: "{{ wallet_ecosystem_dir }}"
+    creates: "{{ wallet_ecosystem_dir }}/.npmrc"
+  environment:
+    GITHUB_AUTH_TOKEN: "{{ github_token }}"
+
 - name: Touch files
   ansible.builtin.file:
     path: "{{ item }}"
