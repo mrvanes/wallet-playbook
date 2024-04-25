@@ -6,7 +6,7 @@ wallet-ecosystem ansible playbook
 * Adjust `environments/<new env>/inventory` to reflect target host(s).
 * Adjust `environments/<new env>/group_vars/all.yml` to reflect desired configuration.
 
-You need an account and ssh access with sudo rights on the target host(s).
+You need an account and ssh access with sudo rights on a debian based target host(s).
 
 Deploy Wallet-Ecosystem:
 ```
